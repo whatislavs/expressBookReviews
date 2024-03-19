@@ -53,29 +53,35 @@ regd_users.post("/login", (req,res) => {
 // Add a book review
 regd_users.put("/auth/review/:isbn", (req, res) => {
     const isbn = req.params.isbn;
-    const username = req.body.username;
+    const username = req.session.authorization.username;
+    let book = books[isbn];
+    let review = req.body.review;
 
-
-    let book = books[isbn]
-    if (book) { //Check is friend exists
-        let review = req.body.review;
-        //Add similarly for firstName
-        //Add similarly for lastName
-        //if DOB the DOB has been changed, update the DOB 
-        // if(review) {
-        //     book["review"] = review
-        // }
-
-        books[isbn].reviews= {
-            username:review,
-            //Add similarly for lastName
-            //Add similarly for DOB
-        }
-        res.send(`The book with ISBN:  ${isbn} was updated by ${username}.`);
-    }
-    else{
+    if (book) {
+        book.reviews[username] = review;
+        res.send(`The review for the book with ISBN: ${isbn} was updated by ${username}.`);
+    } else {
         res.send("Unable to find the book!");
     }
+});
+
+regd_users.delete("/auth/review/:isbn", (req, res) => {
+    const isbn = req.params.isbn;
+    const username = req.session.authorization.username;
+    const book = books[isbn];
+
+    if (book) {
+        if(book.reviews[username]) {
+            delete book.reviews[username];
+            res.send(`Review for book ISBN ${isbn} successfully deleted!`);
+        } else {
+            res.send("Unable to find your review for this book!");
+        }
+
+    } else {
+        res.send("Unable to find the book!");
+    }
+    
 });
 
 module.exports.authenticated = regd_users;
